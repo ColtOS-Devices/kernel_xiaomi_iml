@@ -11,6 +11,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
 #include <linux/thermal.h>
+#include <linux/battery_saver.h>
 
 #include "kgsl_device.h"
 #include "kgsl_pwrscale.h"
@@ -828,6 +829,9 @@ static void kgsl_pwrctrl_min_pwrlevel_set(struct kgsl_device *device,
 	/* You can't set a minimum power level lower than the maximum */
 	if (level < pwr->max_pwrlevel)
 		level = pwr->max_pwrlevel;
+
+	if (is_battery_saver_on())
+		level = pwr->num_pwrlevels - 2;
 
 	pwr->min_pwrlevel = level;
 
