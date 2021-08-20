@@ -14,6 +14,7 @@
 #include <linux/slab.h>
 #include <linux/version.h>
 #include <linux/sched.h>
+#include <linux/battery_saver.h>
 
 /* The sched_param struct is located elsewhere in newer kernels */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
@@ -170,6 +171,9 @@ static void update_online_cpu_policy(void)
 
 static void __cpu_input_boost_kick(struct boost_drv *b)
 {
+	if (is_battery_saver_on())
+        return;
+	
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
 
@@ -199,6 +203,9 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
 	unsigned long curr_expires, new_expires;
 
+	if (is_battery_saver_on())
+        return;
+	
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
 
@@ -293,6 +300,9 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	if (action != CPUFREQ_ADJUST)
 		return NOTIFY_OK;
+		
+	if (is_battery_saver_on())
+		return NOTIFY_OK;
 
 	/* Unboost when the screen is off */
 	if (test_bit(SCREEN_OFF, &b->state)) {
@@ -327,6 +337,9 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	/* Parse framebuffer blank events as soon as they occur */
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
+		return NOTIFY_OK;
+		
+	if (is_battery_saver_on())
 		return NOTIFY_OK;
 
 	/* Boost when the screen turns on and unboost when it turns off */
