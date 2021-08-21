@@ -592,9 +592,7 @@ static int ext4_shutdown(struct super_block *sb, unsigned long arg)
 		return 0;
 
 	ext4_msg(sb, KERN_ALERT, "shut down requested (%d)", flags);
-	#if 0
 	trace_ext4_shutdown(sb, flags);
-	#endif
 
 	switch (flags) {
 	case EXT4_GOING_FLAGS_DEFAULT:
