@@ -11,7 +11,6 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <uapi/linux/sched/types.h>
-#include <linux/battery_saver.h>
 
 enum {
 	SCREEN_OFF,
@@ -58,9 +57,6 @@ static struct df_boost_drv df_boost_drv_g __read_mostly = {
 
 static void __devfreq_boost_kick(struct boost_dev *b)
 {
-	if (is_battery_saver_on())
-        return;
-	
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
 		return;
 
@@ -83,9 +79,6 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
 	unsigned long curr_expires, new_expires;
 
-	if (is_battery_saver_on())
-        return;
-	
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
 		return;
 
@@ -144,9 +137,6 @@ static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
 {
 	struct devfreq *df = b->df;
 
-	if (is_battery_saver_on())
-        return;
-	
 	mutex_lock(&df->lock);
 	if (test_bit(SCREEN_OFF, &state)) {
 		df->min_freq = df->profile->freq_table[0];
@@ -200,9 +190,6 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 	/* Parse framebuffer blank events as soon as they occur */
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
-		
-	if (is_battery_saver_on())
-        return NOTIFY_OK;
 
 	/* Boost when the screen turns on and unboost when it turns off */
 	for (i = 0; i < DEVFREQ_MAX; i++) {
